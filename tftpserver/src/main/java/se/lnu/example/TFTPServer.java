@@ -10,8 +10,8 @@ public class TFTPServer {
 	public static final int BUFSIZE = 516;
 	public static final String READDIR = "/home/username/read/";
 	public static final String WRITEDIR = "/home/username/write/";
-	public static final int OP_RRQ = 1;  // Read Request
-	public static final int OP_WRQ = 2;  // Write Request
+	public static final int OP_RRQ = 1;  // Read OctetRequest
+	public static final int OP_WRQ = 2;  // Write OctetRequest
 	public static final int OP_DAT = 3;  // Data
 	public static final int OP_ACK = 4;  // Acknowledgment
 	public static final int OP_ERR = 5;  // Error

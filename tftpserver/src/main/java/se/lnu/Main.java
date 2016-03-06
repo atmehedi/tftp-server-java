@@ -1,13 +1,18 @@
 package se.lnu;
 
 import org.apache.log4j.Logger;
-import se.lnu.domain.Request;
+import se.lnu.domain.ACK;
+import se.lnu.domain.OctetRequest;
+import se.lnu.domain.TFTPDataPacket;
+import se.lnu.handlers.ACKParser;
 import se.lnu.handlers.RequestParser;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Hello world!
@@ -18,40 +23,54 @@ public class Main
     public static void main( String[] args ) throws Exception
     {
         final Logger LOG = Logger.getLogger(Main.class.getSimpleName());
-        LOG.debug("Init server");
-
+//        LOG.debug("Init server");
+        /* Setting up the base for the main class*/
         int byteBufferSize = 516;
         int port = 4970;
-
         byte[] byteBuffer = new byte[byteBufferSize];
-
         DatagramSocket datagramSocket = new DatagramSocket(null);
-
-        SocketAddress socketAddress = new InetSocketAddress("0.0.0.0", port);
-
+        SocketAddress socketAddress = new InetSocketAddress("127.0.0.1", port);
         datagramSocket.bind(socketAddress);
-
-
         DatagramPacket recvDatagramPacket = new DatagramPacket(byteBuffer, byteBuffer.length);
-
-        System.out.println("Waiting for packet");
-
+        //System.out.println("Waiting for packet");
         RequestParser rp = new RequestParser();
-
-
         datagramSocket.receive(recvDatagramPacket);
+        //System.out.println(recvDatagramPacket.getPort());
+        int remotePort = recvDatagramPacket.getPort();
+        SocketAddress remoteBindPoint = new InetSocketAddress("127.0.0.1", remotePort);
+        OctetRequest fromClient = rp.getRequest(recvDatagramPacket);
+//        System.out.println("Gotten a read request with opcode: " + fromClient.getOpcode()
+//                + "\nisReadRequest == " + fromClient.isReadRequest() + ", is writeRequest == " + fromClient.isWriteRequest()
+//                + "\nThe done file name == " + fromClient.getFileName());
+
+        if (fromClient.isReadRequest())
+        {
+            //System.out.println("It's a read request");
+            TFTPDataPacket toClient = new TFTPDataPacket(Paths.get(fromClient.getFileName()));
+            byte[] msg = toClient.getPacket(1);
+//            for (int i = 0; i < 6; i++)
+//            {
+//                System.out.println(msg[i]);
+//            }
+            DatagramPacket sendPack = new DatagramPacket(msg, msg.length, remoteBindPoint);
+            datagramSocket.send(sendPack);
+            //System.out.println("Waiting for ack");
+            datagramSocket.receive(recvDatagramPacket);
+            ACKParser ap = new ACKParser();
+            ACK ack = ap.getAck(recvDatagramPacket);
+            //System.out.println("Ack received for block nr " + ack.getAckNr());
+
+        }
 
 
-        Request fromClient = rp.getRequest(recvDatagramPacket);
-
-
-        System.out.println("Recv packet");
-
-        LOG.debug("Recv from client");
-        LOG.debug("Data: " + new String(recvDatagramPacket.getData()));
-        LOG.debug("Length: " + recvDatagramPacket.getLength());
-        LOG.debug("Address: " + recvDatagramPacket.getAddress());
-        LOG.debug("Port: " + recvDatagramPacket.getPort());
+//
+//        System.out.println("Recv packet");
+//
+//        LOG.debug("Recv from client");
+//        LOG.debug("Data: " + new String(recvDatagramPacket.getData()));
+//        LOG.debug("Length: " + recvDatagramPacket.getLength());
+//        LOG.debug("Address: " + recvDatagramPacket.getAddress());
+//        LOG.debug("Port: " + recvDatagramPacket.getPort());
 
     }
 }
