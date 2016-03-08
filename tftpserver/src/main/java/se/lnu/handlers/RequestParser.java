@@ -21,7 +21,6 @@ public class RequestParser {
         byte[] opcodeArr = {packetBuffer[0], packetBuffer[1]};
         int opcode = packetBuffer[0] + packetBuffer[1];
         System.out.println("Received following opcode: " + opcode);
-        String bufToStr = new String(packetBuffer);
         String fileName = getFilenameAndVerifyMode(2, datagramPacket.getData());
         OctetRequest out;
         if (opcode == 1)

@@ -1,87 +1,55 @@
 package se.lnu.domain;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+
+import se.lnu.handlers.UnsignedHelper;
 
 /**
  * Created by Jakob on 2016-03-05.
  */
 public class TFTPDataPacket
 {
-    private byte[] opcode = {0, 3};
-    private byte[][] data;
+    private int blockNr;
+    private byte[] packet;
 
-    public TFTPDataPacket(Path toFile) throws IOException
+    public TFTPDataPacket(byte[] data, int blockNrIn)
     {
-        data = setupDataArr(toFile);
-    }
-
-    public byte[] getPacket(int packetNo)
-    {
-        if (packetNo <= 0)
+        if (data.length > 512)
         {
-            throw new IllegalArgumentException("Packet number can't be 0 or negative");
+            throw new IllegalArgumentException("Maximum length of data packet is 512 bytes, the number" +
+                    " bytes received in constructor == " + data.length);
         }
-        else if (packetNo > data.length)
+        if (blockNrIn < 1 || blockNrIn > 65535)
         {
-            throw new IllegalArgumentException("The last packet is the packet with number " + data.length);
+            throw new IllegalArgumentException("Invalid block number, has to be 1-65535");
         }
-        byte[] currentPacket = data[packetNo-1];
-        byte[] packet = new byte[currentPacket.length + 4];
-        packet[0] = 0; packet[1] = 3;   //Indicating it's data packet for the transfer
-        packet[2] = 0; packet[3] = (byte) packetNo;
+        blockNr = blockNrIn;
+        packet = new byte[data.length + 4];
+        packet[0] = 0; packet[1] = 3;   //opcode
+        byte[] blockNrToUnsBytes = UnsignedHelper.intTo2UnsignedBytes(blockNrIn);
+        packet[2] = blockNrToUnsBytes[0];
+        packet[3] = blockNrToUnsBytes[1];
         for (int i = 4; i < packet.length; i++)
         {
-            packet[i] = currentPacket[i-4];
+            packet[i] = data[i-4];
         }
-        //System.out.println("Optcode = " + packet[0] +"" + packet[1]);
-        //System.out.println("Returning packet no " + packetNo);
-        return packet;
     }
 
-    /**
-     * Help method that sets up all byte arrays for the data to transfer
-     * @param toFile the file to be served
-     * @return a two dimensonial array where the last packet won't be full
-     * according to the tftp protocol.
-     * @throws IOException
-     */
-    private byte[][] setupDataArr(Path toFile) throws IOException
+    public String toString()
     {
-        byte[] dataInBytes = Files.readAllBytes(toFile);
-        final int ARR_SIZE = 512;
-        int noArrs = dataInBytes.length / ARR_SIZE + 1;
-        //System.out.println("Arrsize = " + noArrs);
-        byte[][] dataArr = new byte[noArrs][];
-        for (int i = 0; i < dataArr.length - 1; i++)
-        {
-            dataArr[i] = new byte[ARR_SIZE];
-            for (int k = 0; k < ARR_SIZE; k++)
-            {
-                //System.out.println("dataInBytes[" + i + "]" + "[" + k + "] == dataInBytes[" + ((ARR_SIZE * i) + k) + "]");
-                dataArr[i][k] = dataInBytes[(ARR_SIZE * i) + k];
-            }
-        }
-        /*Oavsett vilket så måste ett sista paket skapas för även om det
-        * är ett jämnt antal ska ett sista paket som innehåller 0-511 paket skickas*/
-        int lastArray = dataArr.length - 1;
-        //System.out.println("Last array index == " + lastArray);
-        int startIOfLastBytes = ARR_SIZE * lastArray;
-        //System.out.println("Index of start byte to read from == " + startIOfLastBytes);
-        int bytesLeft = dataInBytes.length - startIOfLastBytes;
-        //System.out.println("Bytes left == " + bytesLeft);
-        dataArr[dataArr.length - 1] = new byte[bytesLeft];
-        for (int i = startIOfLastBytes; i < dataInBytes.length; i++)
-        {
-            dataArr[lastArray][i % ARR_SIZE] = dataInBytes[i];
-        }
-        return dataArr;
+        String out = "";
+        out += "Opcode == " + packet[0] + "" + packet[1];
+        out += ", block nr == " + packet[2] + "" + packet[3];
+        out += ", getContent() == " + getContent();
+        return  out;
     }
 
-    public int getLastPacketNr()
+    public String getContent()
     {
-        return data.length;
+        StringBuilder content = new StringBuilder();
+        for (int i = 4; i < packet.length; i++)
+        {
+            content.append((char)packet[i]);
+        }
+        return content.toString();
     }
-
 }
