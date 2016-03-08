@@ -2,34 +2,45 @@ package se.lnu.handlers;
 
 /**
  * Created by Jakob on 2016-03-07.
+ * This class is to help with unsigned bytes since java doesn't seem to have
+ * much support for it.
  */
 public class UnsignedHelper
 {
+
+    /**
+     * This method receives an signed int and converts it to the equivalent
+     * unsigned byte values of the two least significant bytes of the int.
+     * @param val an signed integer value 0 <= val <= 2^16 - 1
+     * @return byte[][] containing the unsigned equivalent of the entered
+     * value of the integer to the method. The least significant bits in
+     * index 1 and the most significant bits in index 0.
+     * */
     public static byte[] intTo2UnsignedBytes(int val)
     {
         int upperBound = (int) Math.round(Math.pow(2,16) - 1);
-        System.out.println(upperBound);
         int lowerBound = 0;
         if (val < lowerBound || val > upperBound)
         {
             throw new IllegalArgumentException("Argument has to be 0 <= val <= (2^16-1)");
         }
         int no256s = val / 256;
-        System.out.println(no256s + " st 256");
         byte[] out = new byte[2];
         out[0] = (byte) no256s;
         out[1] = (byte) (val % 256);
-        System.out.println("out[0] == " + out[0]);
-        System.out.println("out[1] == " + out[1]);
         return out;
     }
 
+    /**
+     * Returns the signed integer value of an 16-bit binary number
+     * @param inbytes the 16-bit unsigned value
+     * @return the same value expressed as an 32-bit signed integer
+     */
     public static int twoBytesToInt(byte[] inbytes)
     {
         int first = Byte.toUnsignedInt(inbytes[0]);
         int second = Byte.toUnsignedInt(inbytes[1]);
         int result = first * 256 + second;
-        System.out.println(result);
         return result;
     }
 }

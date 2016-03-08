@@ -38,7 +38,7 @@ public class TFTPDataPacket
     {
         String out = "";
         out += "Opcode == " + packet[0] + "" + packet[1];
-        out += ", block nr == " + packet[2] + "" + packet[3];
+        out += ", block nr == " + blockNr;
         out += ", getContent() == " + getContent();
         return  out;
     }
