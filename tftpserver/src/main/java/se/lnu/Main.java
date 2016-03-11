@@ -4,6 +4,7 @@ import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
@@ -102,7 +103,21 @@ class TFTPServerThread extends Thread {
             RequestParser requestParser = new RequestParser();
             fromClient = requestParser.getRequest(recvDatagramPacket);
             DatagramSocket datagramSocket = new DatagramSocket(null);
-            //Fix for random port server connection
+            SocketAddress socketAddress;
+
+            // Assign a port that is not occupied
+            assignPort: for (;;){
+                try{
+                    socketAddress = new InetSocketAddress("127.0.0.1", RandomInt());
+                    datagramSocket.bind(socketAddress);
+                    break assignPort;
+                }
+                catch (BindException e){}
+            }
+
+            System.out.println(socketAddress);
+
+
 
 
             if (fromClient.isReadRequest())
@@ -112,8 +127,7 @@ class TFTPServerThread extends Thread {
                 RequestValidator requestValidator = new RequestValidator();
 
                 // If request from client is valid
-                //boolean validReq = requestValidator.validateRequestedReadFile(fromClient.getFileName());
-                boolean validReq = true;    //TODO remove this John
+                boolean validReq = requestValidator.validateRequestedReadFile(fromClient.getFileName());
                 if (validReq){
 
                     Path path = Paths.get(fromClient.getREADDIR()+fromClient.getFileName());
@@ -140,6 +154,7 @@ class TFTPServerThread extends Thread {
                                 ACK ack = ackParser.getAck(recvDatagramPacket);
 
                                 if (ack.getAckNr() == packet.getBlockNr()){
+                                    System.out.println("Recv package nr: "+ack.getAckNr());
                                     break sendPackageAndCheckAck;
                                 }
                                 else {
@@ -147,7 +162,7 @@ class TFTPServerThread extends Thread {
                                     // Should we do anything here?
                                 }
 
-                                System.out.println("Recv package nr: "+ack.getAckNr());
+
                                 System.out.println();
                             }
                             catch (SocketTimeoutException e){
@@ -170,13 +185,17 @@ class TFTPServerThread extends Thread {
         }
 
         catch (Exception e){
-            //TODO you have to return the proper error, probably Illegal TFTP operation
-            /*TODO The ACKParser can also throw an illegalstateexception in case the opcode is faulty*/
             LOG.debug("Failed to parse recvDatagramPacket with RequestParser.getRequest()");
             System.exit(1);
         }
     }
 
+    private static int RandomInt(){
+        int min = 65000;
+        int max = 65534;
+        Random random = new Random();
+        return random.nextInt(max - min + 1) + min;
+    }
 
 }
 
