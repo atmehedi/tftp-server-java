@@ -32,9 +32,9 @@ public class RequestParser {
         }
         else if (opcode == 2)
         {
-            System.out.println("\n\nUNIMPLEMENTED - got write request\n\n");
             return new WriteRequest(fileName);
         }
+        //TODO, handle this exception with Illegal TFTP operation
         else {throw new IOException("Incompatible opcode received from client, received opcode == " + opcode);}
     }
 
@@ -63,6 +63,7 @@ public class RequestParser {
 
         if (!mode.equalsIgnoreCase("octet"))
         {
+            //TODO, handle this exception in the main class
             throw new IOException("Mode requested was not octet and is not supported by server," +
                     " request mode received == " + mode);
         }

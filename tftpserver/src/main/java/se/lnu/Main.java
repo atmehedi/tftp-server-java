@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import se.lnu.domain.ACK;
 import se.lnu.domain.OctetRequest;
 import se.lnu.domain.TFTPDataPacket;
+import se.lnu.domain.error.TFTPError;
 import se.lnu.handlers.ACKParser;
 import se.lnu.handlers.DataPacketHandler;
 import se.lnu.handlers.RequestParser;
@@ -127,8 +128,8 @@ class TFTPServerThread extends Thread {
                 RequestValidator requestValidator = new RequestValidator();
 
                 // If request from client is valid
-                boolean validReq = requestValidator.validateRequestedReadFile(fromClient.getFileName());
-                if (validReq){
+                TFTPError error = requestValidator.validateRequestedReadFile(fromClient.getFileName());
+                if (error == null){
 
                     Path path = Paths.get(fromClient.getREADDIR()+fromClient.getFileName());
                     System.out.println(path);
@@ -185,6 +186,7 @@ class TFTPServerThread extends Thread {
         }
 
         catch (Exception e){
+            //TODO this is where a lot of the errors that I can't handle end up so make sure to handle them in the correct way
             LOG.debug("Failed to parse recvDatagramPacket with RequestParser.getRequest()");
             System.exit(1);
         }

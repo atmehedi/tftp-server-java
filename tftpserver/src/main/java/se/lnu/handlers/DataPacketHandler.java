@@ -223,7 +223,7 @@ public class DataPacketHandler
         if (lastPacketReceived())
         {
             //Write it to file
-            //TODO: When you are done with the main flow, make sure to test this method John.
+            /*TODO: When you are done with the main flow, make sure to test this method John*/
             byte[] rawData = getRawDataFromPackets();
             writeToFile(fileNameWithPath, rawData);
         }

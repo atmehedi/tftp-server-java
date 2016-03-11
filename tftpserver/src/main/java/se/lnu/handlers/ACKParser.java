@@ -17,6 +17,7 @@ public class ACKParser
         System.out.println("\n" + data[0] + ", " + data[1] + ", " + data[2] + "," + data[3] + "\n");
         if (data[0] != 0 && data[1] != 4)
         {
+            //TODO handle with proper error response
             throw new IllegalStateException("Not ack opcode, received code = " + data[0] + " " + data[1]);
         }
         return new ACK(data[2], data[3]);
