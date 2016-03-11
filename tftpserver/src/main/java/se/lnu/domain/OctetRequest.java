@@ -6,7 +6,7 @@ import java.io.File;
 /**
  * Created by nils on 3/4/16.
  * Super class of requests. Don't contain any mode since the request parser doesn't
- * approve any other mode than octet.
+ * approve any other mode than octet and as the name implies it's an octet request.
  */
 public abstract class OctetRequest
 {
@@ -29,6 +29,10 @@ public abstract class OctetRequest
         return opcode;
     }
 
+    /**
+     * Getter for getting the file name with the path to the location of the file.
+     * @return a String of the path to the file
+     */
     public String getFileName()
     {
         return fileName;

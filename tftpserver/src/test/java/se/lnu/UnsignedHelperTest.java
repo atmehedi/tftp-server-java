@@ -44,6 +44,6 @@ public class UnsignedHelperTest
         byte[] val = new byte[]{-1,-1};
         int signedIntVal = UnsignedHelper.twoBytesToInt(val);
         int expected = 65535;
-        assertEquals("Error converting from unsigned bytes to signed integer", expected, signedIntVal);
+        assertEquals("TFTPError converting from unsigned bytes to signed integer", expected, signedIntVal);
     }
 }

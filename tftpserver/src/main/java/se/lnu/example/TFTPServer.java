@@ -14,7 +14,7 @@ public class TFTPServer {
 	public static final int OP_WRQ = 2;  // Write OctetRequest
 	public static final int OP_DAT = 3;  // Data
 	public static final int OP_ACK = 4;  // Acknowledgment
-	public static final int OP_ERR = 5;  // Error
+	public static final int OP_ERR = 5;  // TFTPError
 
 	public static void main(String[] args) {
 		if (args.length > 0) {

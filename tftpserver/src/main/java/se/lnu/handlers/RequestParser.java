@@ -3,6 +3,7 @@ package se.lnu.handlers;
 import org.apache.log4j.Logger;
 import se.lnu.domain.OctetRequest;
 import se.lnu.domain.ReadRequest;
+import se.lnu.domain.WriteRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,6 @@ public class RequestParser {
         int opcode = packetBuffer[0] + packetBuffer[1];
         System.out.println("Received following opcode: " + opcode);
         String fileName = getFilenameAndVerifyMode(2, datagramPacket.getData());
-        OctetRequest out;
         if (opcode == 1)
         {
             File requestedFile = new File(OctetRequest.READDIR + fileName);
@@ -33,10 +33,9 @@ public class RequestParser {
         else if (opcode == 2)
         {
             System.out.println("\n\nUNIMPLEMENTED - got write request\n\n");
+            return new WriteRequest(fileName);
         }
         else {throw new IOException("Incompatible opcode received from client, received opcode == " + opcode);}
-
-        return null;
     }
 
     private static String getFilenameAndVerifyMode(int start, byte[] buffer) throws IOException

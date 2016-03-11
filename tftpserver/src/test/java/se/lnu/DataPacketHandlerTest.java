@@ -30,9 +30,32 @@ public class DataPacketHandlerTest
         }
     }
 
+    @Test
+    public void parseAndReceiveTFTPDataPacket_stringInput_returnsRightPacks()
+    {
+        String text = "Here is some motherfucking text";
+        ArrayList<TFTPDataPacket> packets = getReadPacketsFromString(text);
+        System.out.println(packets.size());
+        for (int i = 0; i < packets.size(); i++)
+        {
+            System.out.println(packets.get(i));
+        }
+    }
+
     public ArrayList<TFTPDataPacket> getReadPackets(Path toFile) throws IOException
     {
         byte[] dataInBytes = Files.readAllBytes(toFile);
+        return divisionLogic(dataInBytes);
+    }
+
+    public ArrayList<TFTPDataPacket> getReadPacketsFromString(String s)
+    {
+        byte[] stringInBytes = s.getBytes();
+        return divisionLogic(stringInBytes);
+    }
+
+    public ArrayList<TFTPDataPacket> divisionLogic(byte[] dataInBytes)
+    {
         final int ARR_SIZE = 1;
         int noPackets = dataInBytes.length / ARR_SIZE + 1;
         ArrayList<TFTPDataPacket> out = new ArrayList<TFTPDataPacket>();

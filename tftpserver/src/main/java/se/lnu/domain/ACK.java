@@ -15,7 +15,7 @@ public class ACK
     public ACK(byte b, byte b1)
     {
         blockNr = new byte[]{b, b1};
-        System.out.println("Packet nr == " + b + "," + b1);
+        //System.out.println("Packet nr == " + b + "," + b1);
         blockNrInt = UnsignedHelper.twoBytesToInt(blockNr);
     }
 
@@ -26,5 +26,10 @@ public class ACK
     public int getAckNr()
     {
         return blockNrInt;
+    }
+
+    public String toString()
+    {
+        return "ACK, nr: " + blockNrInt;
     }
 }

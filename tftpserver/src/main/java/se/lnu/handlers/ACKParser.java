@@ -11,7 +11,7 @@ import java.net.DatagramPacket;
 public class ACKParser
 {
 
-    public ACK getAck(DatagramPacket recvDatagramPacket)
+    public ACK getAck(DatagramPacket recvDatagramPacket) throws IllegalStateException
     {
         byte[] data = recvDatagramPacket.getData();
         System.out.println("\n" + data[0] + ", " + data[1] + ", " + data[2] + "," + data[3] + "\n");

@@ -102,6 +102,7 @@ class TFTPServerThread extends Thread {
             RequestParser requestParser = new RequestParser();
             fromClient = requestParser.getRequest(recvDatagramPacket);
             DatagramSocket datagramSocket = new DatagramSocket(null);
+            //Fix for random port server connection
 
 
             if (fromClient.isReadRequest())
@@ -111,7 +112,8 @@ class TFTPServerThread extends Thread {
                 RequestValidator requestValidator = new RequestValidator();
 
                 // If request from client is valid
-                boolean validReq = requestValidator.validateRequestedReadFile(fromClient.getFileName());
+                //boolean validReq = requestValidator.validateRequestedReadFile(fromClient.getFileName());
+                boolean validReq = true;    //TODO remove this John
                 if (validReq){
 
                     Path path = Paths.get(fromClient.getREADDIR()+fromClient.getFileName());
@@ -168,6 +170,8 @@ class TFTPServerThread extends Thread {
         }
 
         catch (Exception e){
+            //TODO you have to return the proper error, probably Illegal TFTP operation
+            /*TODO The ACKParser can also throw an illegalstateexception in case the opcode is faulty*/
             LOG.debug("Failed to parse recvDatagramPacket with RequestParser.getRequest()");
             System.exit(1);
         }

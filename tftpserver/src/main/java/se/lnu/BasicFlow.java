@@ -2,6 +2,7 @@ package se.lnu;
 
 /**
  * Created by Jakob on 2016-03-07.
+ * REMOVE THIS FILE BEFORE HANDING IN ASSIGNMENT
  */
 public class BasicFlow
 {

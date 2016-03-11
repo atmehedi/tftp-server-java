@@ -1,25 +1,41 @@
 package se.lnu.handlers;
 
+import se.lnu.domain.error.E1FileNotFound;
+import se.lnu.domain.error.E6FileAlreadyExist;
+import se.lnu.domain.error.TFTPError;
+
 import java.io.File;
 
 /**
  * Created by Jakob on 2016-03-07.
+ * A class to do some basic validation of the parsed request objects.
  */
 public class RequestValidator
 {
 
-    public boolean validateRequestedReadFile(String fileName)
+    /**
+     * Method for validating a read request. Returns an error if there's an
+     * error, otherwise null.
+     * @param fileName
+     * @return
+     */
+    public TFTPError validateRequestedReadFile(String fileName)
     {
         File f = new File(fileName);
-        return f.exists();
+        if (!f.exists()){return new E1FileNotFound();}
+        return null;
     }
 
-    /* These methods can later be changed to return error messages. If they return null,
-    * there's not conflict and the main method will know it.*/
-    public boolean validateRequestedWriteFile(String fileName)
-    {
 
+    /**
+     * Method for validating the write request.
+     * @param fileName
+     * @return error if something wrong, otherwise null
+     */
+    public TFTPError validateRequestedWriteFile(String fileName)
+    {
         File f = new File(fileName);
-        return !f.exists();     //Not possible to write over existing file
+        if (f.exists()) { return new E6FileAlreadyExist(); }
+        return null;
     }
 }

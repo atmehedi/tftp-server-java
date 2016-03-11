@@ -2,6 +2,8 @@ package se.lnu.egnatester;
 
 /**
  * Created by Jakob on 2016-03-06.
+ * Simple test for trying out methods and stuff for the data packets. NOT
+ * to be included when handed in to the teacher.
  */
 public class ByteToTwoDimArrTest
 {

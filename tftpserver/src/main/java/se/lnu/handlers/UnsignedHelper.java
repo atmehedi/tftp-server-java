@@ -12,11 +12,11 @@ public class UnsignedHelper
      * This method receives an signed int and converts it to the equivalent
      * unsigned byte values of the two least significant bytes of the int.
      * @param val an signed integer value 0 <= val <= 2^16 - 1
-     * @return byte[][] containing the unsigned equivalent of the entered
+     * @return byte[] containing the unsigned equivalent of the entered
      * value of the integer to the method. The least significant bits in
      * index 1 and the most significant bits in index 0.
      * */
-    public static byte[] intTo2UnsignedBytes(int val)
+    public synchronized static byte[] intTo2UnsignedBytes(int val)
     {
         int upperBound = (int) Math.round(Math.pow(2,16) - 1);
         int lowerBound = 0;
@@ -36,7 +36,7 @@ public class UnsignedHelper
      * @param inbytes the 16-bit unsigned value
      * @return the same value expressed as an 32-bit signed integer
      */
-    public static int twoBytesToInt(byte[] inbytes)
+    public synchronized static int twoBytesToInt(byte[] inbytes)
     {
         int first = Byte.toUnsignedInt(inbytes[0]);
         int second = Byte.toUnsignedInt(inbytes[1]);
