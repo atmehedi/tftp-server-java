@@ -15,7 +15,7 @@ public class RequestParser {
 
     final static Logger LOG = Logger.getLogger(RequestParser.class.getSimpleName());
 
-    public static OctetRequest getRequest(DatagramPacket datagramPacket) throws IOException
+    public OctetRequest getRequest(DatagramPacket datagramPacket) throws IOException
     {
         byte[] packetBuffer = datagramPacket.getData();
         byte[] opcodeArr = {packetBuffer[0], packetBuffer[1]};

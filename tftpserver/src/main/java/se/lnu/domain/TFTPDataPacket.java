@@ -52,4 +52,12 @@ public class TFTPDataPacket
         }
         return content.toString();
     }
+
+    public byte[] getPacket() {
+        return packet;
+    }
+
+    public int getBlockNr() {
+        return blockNr;
+    }
 }

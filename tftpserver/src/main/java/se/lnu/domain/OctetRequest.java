@@ -1,5 +1,6 @@
 package se.lnu.domain;
 
+
 import java.io.File;
 
 /**
@@ -9,7 +10,7 @@ import java.io.File;
  */
 public abstract class OctetRequest
 {
-    public static final String READDIR = "C:\\Users\\Steve\\Documents\\TFTPFolder\\readReqs\\";
+    public static final String READDIR = "/Users/nils/Desktop/";
     public static final String WRITEDIR = "C:\\Users\\Steve\\Documents\\TFTPFolder\\sendReqs\\";
     private int opcode;
     private String fileName;
@@ -41,5 +42,13 @@ public abstract class OctetRequest
     public boolean isWriteRequest()
     {
         return opcode == 2;
+    }
+
+    public String getREADDIR() {
+        return READDIR;
+    }
+
+    public String getWRITEDIR() {
+        return WRITEDIR;
     }
 }
