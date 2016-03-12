@@ -9,7 +9,6 @@ public abstract class TFTPError
     private static byte[] opcode = new byte[]{0, 5};
     private byte[] errcode;
     private String errMSG;
-    private byte endOfString = 0;
 
     public TFTPError(byte[] errC, String msg)
     {
@@ -24,16 +23,23 @@ public abstract class TFTPError
      */
     public byte[] getError()
     {
-        byte[] errMsgInBytes = errMSG.getBytes();
-        int lengthOfArr = opcode.length + errMsgInBytes.length + errMSG.length() + 1;   //+ 1 because of end of string
+        byte[] errMsgInBytes = this.errMSG.getBytes();
+        int lengthOfArr = 4 + errMsgInBytes.length + 1;  //+4 because of 4 first
+                                                         //+1 because of end of string
         byte[] out = new byte[lengthOfArr];
         out[0] = opcode[0]; out[1] = opcode[1];
         out[2] = errcode[0]; out[3] = errcode[1];
-        for (int i = 4; i < out.length; i++)
+
+        for (int i = 0; i < errMsgInBytes.length; i++)
         {
-            out[i] = errMsgInBytes[i - 4];
+            // Add the message on i + 4 in the out array.
+            out[i + 4] = errMsgInBytes[i];
         }
-        out[out.length - 1] = endOfString;
+
         return out;
+    }
+
+    public String getErrMSG() {
+        return this.errMSG;
     }
 }

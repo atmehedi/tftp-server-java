@@ -4,6 +4,9 @@ import org.apache.log4j.Logger;
 import se.lnu.domain.OctetRequest;
 import se.lnu.domain.ReadRequest;
 import se.lnu.domain.WriteRequest;
+import se.lnu.domain.exeptions.E0NotDefinedException;
+import se.lnu.domain.exeptions.E1FileNotFoundException;
+import se.lnu.domain.exeptions.E4IllegalTFTPOperationException;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +19,7 @@ public class RequestParser {
 
     final static Logger LOG = Logger.getLogger(RequestParser.class.getSimpleName());
 
-    public OctetRequest getRequest(DatagramPacket datagramPacket) throws IOException
+    public OctetRequest getRequest(DatagramPacket datagramPacket) throws Exception
     {
         byte[] packetBuffer = datagramPacket.getData();
         byte[] opcodeArr = {packetBuffer[0], packetBuffer[1]};
@@ -26,6 +29,10 @@ public class RequestParser {
         if (opcode == 1)
         {
             File requestedFile = new File(OctetRequest.READDIR + fileName);
+            if (!requestedFile.exists()){
+                // If file not found, throw exception to client
+                throw new E1FileNotFoundException();
+            }
             System.out.println("Does the file exist? " + requestedFile.exists());
             System.out.println("Returning new read request");
             return new ReadRequest(fileName);
@@ -34,12 +41,14 @@ public class RequestParser {
         {
             return new WriteRequest(fileName);
         }
-        //TODO, handle this exception with Illegal TFTP operation
-        else {throw new IOException("Incompatible opcode received from client, received opcode == " + opcode);}
+
+        else {
+            LOG.debug("Incompatible opcode received from client, received opcode == " + opcode);
+            throw new E4IllegalTFTPOperationException();
+        }
     }
 
-    private static String getFilenameAndVerifyMode(int start, byte[] buffer) throws IOException
-    {
+    private static String getFilenameAndVerifyMode(int start, byte[] buffer) throws Exception {
         //Retrieve filename
         int i = start;
         char temp = (char) buffer[i];
@@ -64,8 +73,9 @@ public class RequestParser {
         if (!mode.equalsIgnoreCase("octet"))
         {
             //TODO, handle this exception in the main class
-            throw new IOException("Mode requested was not octet and is not supported by server," +
+            System.err.println("Mode requested was not octet and is not supported by server," +
                     " request mode received == " + mode);
+            throw new E4IllegalTFTPOperationException();
         }
 
         return filename;

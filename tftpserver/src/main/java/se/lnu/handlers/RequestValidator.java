@@ -3,6 +3,8 @@ package se.lnu.handlers;
 import se.lnu.domain.error.E1FileNotFound;
 import se.lnu.domain.error.E6FileAlreadyExist;
 import se.lnu.domain.error.TFTPError;
+import se.lnu.domain.exeptions.E1FileNotFoundException;
+import se.lnu.domain.exeptions.E6FileAlreadyExistException;
 
 import java.io.File;
 
@@ -19,10 +21,10 @@ public class RequestValidator
      * @param fileName
      * @return
      */
-    public TFTPError validateRequestedReadFile(String fileName)
+    public TFTPError validateRequestedReadFile(String fileName) throws Exception
     {
         File f = new File(fileName);
-        if (!f.exists()){return new E1FileNotFound();}
+        if (!f.exists()){throw new E1FileNotFoundException();}
         return null;
     }
 
@@ -32,10 +34,10 @@ public class RequestValidator
      * @param fileName
      * @return error if something wrong, otherwise null
      */
-    public TFTPError validateRequestedWriteFile(String fileName)
+    public TFTPError validateRequestedWriteFile(String fileName) throws Exception
     {
         File f = new File(fileName);
-        if (f.exists()) { return new E6FileAlreadyExist(); }
+        if (f.exists()) { throw new E6FileAlreadyExistException(); }
         return null;
     }
 }

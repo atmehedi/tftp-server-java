@@ -1,5 +1,6 @@
 package se.lnu;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,6 +14,7 @@ import se.lnu.domain.ACK;
 import se.lnu.domain.OctetRequest;
 import se.lnu.domain.TFTPDataPacket;
 import se.lnu.domain.error.TFTPError;
+import se.lnu.domain.exeptions.*;
 import se.lnu.handlers.ACKParser;
 import se.lnu.handlers.DataPacketHandler;
 import se.lnu.handlers.RequestParser;
@@ -89,22 +91,27 @@ class TFTPServerThread extends Thread {
 
     DatagramPacket recvDatagramPacket;
     SocketAddress remoteBindPoint;
+    SocketAddress remoteBindPointBackup;
     CommandLine cmd;
 
     public TFTPServerThread(DatagramPacket datagramPacket, CommandLine cmd){
         this.recvDatagramPacket = datagramPacket;
         this.remoteBindPoint = datagramPacket.getSocketAddress();
+        this.remoteBindPointBackup = datagramPacket.getSocketAddress();
         this.cmd = cmd;
     }
 
     @Override
     public void run(){
+
+        OctetRequest fromClient;
+        RequestParser requestParser = new RequestParser();
+        SocketAddress socketAddress;
+        DatagramSocket datagramSocket = null;
+
         try {
-            OctetRequest fromClient;
-            RequestParser requestParser = new RequestParser();
+            datagramSocket = new DatagramSocket(null);
             fromClient = requestParser.getRequest(recvDatagramPacket);
-            DatagramSocket datagramSocket = new DatagramSocket(null);
-            SocketAddress socketAddress;
 
             // Assign a port that is not occupied
             assignPort: for (;;){
@@ -115,11 +122,6 @@ class TFTPServerThread extends Thread {
                 }
                 catch (BindException e){}
             }
-
-            System.out.println(socketAddress);
-
-
-
 
             if (fromClient.isReadRequest())
             {
@@ -183,11 +185,69 @@ class TFTPServerThread extends Thread {
                     // Handle error
                 }
             }
+
+            else if (fromClient.isWriteRequest()){
+
+            }
         }
 
         catch (Exception e){
             //TODO this is where a lot of the errors that I can't handle end up so make sure to handle them in the correct way
-            LOG.debug("Failed to parse recvDatagramPacket with RequestParser.getRequest()");
+
+            TFTPExceptionInterface tftpExceptionInterface = null;
+
+            if (e instanceof E0NotDefinedException){
+                System.out.println(e.getMessage());
+                tftpExceptionInterface = new E0NotDefinedException(e.getMessage());
+            }
+
+            else if (e instanceof E1FileNotFoundException){
+                tftpExceptionInterface = new E1FileNotFoundException();
+            }
+
+            else if (e instanceof E2AccessViolationException){
+                tftpExceptionInterface = new E2AccessViolationException();
+            }
+
+            else if (e instanceof E3DiskFullException){
+                tftpExceptionInterface = new E3DiskFullException();
+            }
+
+            else if (e instanceof E4IllegalTFTPOperationException){
+                tftpExceptionInterface = new E4IllegalTFTPOperationException();
+            }
+
+            else if (e instanceof E5InvalidTransferIDException){
+                tftpExceptionInterface = new E5InvalidTransferIDException();
+            }
+
+            else if (e instanceof E6FileAlreadyExistException){
+                tftpExceptionInterface = new E6FileAlreadyExistException();
+            }
+
+            else if (e instanceof E7NoSuchUserException){
+                tftpExceptionInterface = new E7NoSuchUserException();
+            }
+
+            this.sendErrorToClient(tftpExceptionInterface);
+        }
+    }
+
+    private void sendErrorToClient(TFTPExceptionInterface tftpExceptionInterface){
+        try{
+
+            DatagramSocket datagramSocket = new DatagramSocket(null);
+
+            DatagramPacket sendErrorPacket = new DatagramPacket(tftpExceptionInterface.getErrorAsPacket(),
+                    tftpExceptionInterface.getErrorAsPacket().length,
+                    remoteBindPointBackup);
+            datagramSocket.send(sendErrorPacket);
+
+        }
+        catch (Exception e){
+            System.err.println("Strange, we should not end up here!");
+            e.printStackTrace();
+            System.err.println("\nShuting down");
             System.exit(1);
         }
     }

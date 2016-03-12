@@ -5,7 +5,7 @@ package se.lnu.domain.error;
  */
 public class E7NoSuchUser extends TFTPError
 {
-    private static byte[] errcode = new byte[]{0, 1};
+    private static byte[] errcode = new byte[]{0, 7};
     public E7NoSuchUser()
     {
         super(errcode, "No such user");

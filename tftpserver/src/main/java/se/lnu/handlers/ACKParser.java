@@ -14,7 +14,7 @@ public class ACKParser
     public ACK getAck(DatagramPacket recvDatagramPacket) throws IllegalStateException
     {
         byte[] data = recvDatagramPacket.getData();
-        System.out.println("\n" + data[0] + ", " + data[1] + ", " + data[2] + "," + data[3] + "\n");
+//        System.out.println("\n" + data[0] + ", " + data[1] + ", " + data[2] + "," + data[3] + "\n");
         if (data[0] != 0 && data[1] != 4)
         {
             //TODO handle with proper error response
