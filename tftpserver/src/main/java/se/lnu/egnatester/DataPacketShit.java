@@ -26,6 +26,7 @@ public class DataPacketShit
         * to change the size of the packets, the low value is simply because
         * it's easier to test.*/
         packets = dh.logicOfSeparatingPackets(text.getBytes());
+
         for (TFTPDataPacket tftpDataPacket: packets)
         {
             System.out.println(tftpDataPacket);
@@ -41,7 +42,15 @@ public class DataPacketShit
         * order so you can try to set i to 1 and see what happens.*/
         for (int i = 0; i < packets.size(); i++)
         {
-            ACK ack = dh.parseAndReceiveTFTPDataPacket(packets.get(i).getPacket());
+            ACK ack;
+            if (i > 10)
+            {
+                ack = dh.parseAndReceiveTFTPDataPacket(packets.get(10).getPacket());
+            }
+            else
+            {
+                ack = dh.parseAndReceiveTFTPDataPacket(packets.get(i).getPacket());
+            }
             System.out.println(ack);
         }
 

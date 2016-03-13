@@ -110,11 +110,14 @@ class TFTPServerThread extends Thread {
         DatagramSocket datagramSocket = null;
 
         try {
+
             datagramSocket = new DatagramSocket(null);
             fromClient = requestParser.getRequest(recvDatagramPacket);
 
             // Assign a port that is not occupied
-            assignPort: for (;;){
+            assignPort:
+            for (;;)
+            {
                 try{
                     socketAddress = new InetSocketAddress("0.0.0.0", RandomInt());
                     datagramSocket.bind(socketAddress);
@@ -165,7 +168,6 @@ class TFTPServerThread extends Thread {
                                     // Should we do anything here?
                                 }
 
-
                                 System.out.println();
                             }
                             catch (SocketTimeoutException e){
@@ -186,18 +188,59 @@ class TFTPServerThread extends Thread {
                 }
             }
 
-            else if (fromClient.isWriteRequest()){
+            else if (fromClient.isWriteRequest())
+            {
+                System.out.println("It's a write request");
 
+                RequestValidator requestValidator = new RequestValidator();
+                TFTPError error = requestValidator.validateRequestedWriteFile(fromClient.getFileName());
+                DataPacketHandler dataPacketHandler = new DataPacketHandler();
+
+
+                if (error == null){
+
+                    dataPacketHandler.prepareToReceive();
+
+                    byte[] firstAckToClient = new byte[4];
+                    firstAckToClient[0] = 0;
+                    firstAckToClient[1] = 4;
+                    firstAckToClient[2] = 0;
+                    firstAckToClient[3] = 0;
+
+                    System.out.println("First ack to client: " + firstAckToClient.toString());
+                    DatagramPacket firstAckToClienPacket = new DatagramPacket(firstAckToClient, firstAckToClient.length, remoteBindPoint);
+
+                    System.out.println("Sending first ack to client");
+                    System.out.println("Bind point: "+remoteBindPoint.toString());
+
+                    datagramSocket.send(firstAckToClienPacket);
+
+                    reciveAndSendAckLook: for (;;){
+
+                        datagramSocket.receive(recvDatagramPacket);
+
+                        // Get Ack
+                        ACK ackToClient = dataPacketHandler.parseAndReceiveTFTPDataPacket(recvDatagramPacket.getData());
+
+                        // Send Ack back to client
+                        DatagramPacket ackToClienPacket = new DatagramPacket(ackToClient.returnAckAsBytes(), ackToClient.returnAckAsBytes().length, remoteBindPoint);
+                        datagramSocket.send(ackToClienPacket);
+
+                        if (dataPacketHandler.lastPacketReceived()){
+                            dataPacketHandler.writePacketsToFile(fromClient.getFileName());
+                            break reciveAndSendAckLook;
+                        }
+                    }
+
+                }
             }
         }
 
         catch (Exception e){
-            //TODO this is where a lot of the errors that I can't handle end up so make sure to handle them in the correct way
 
             TFTPExceptionInterface tftpExceptionInterface = null;
 
             if (e instanceof E0NotDefinedException){
-                System.out.println(e.getMessage());
                 tftpExceptionInterface = new E0NotDefinedException(e.getMessage());
             }
 
@@ -247,7 +290,7 @@ class TFTPServerThread extends Thread {
 
         }
         catch (Exception e){
-            System.err.println("Strange, we should not end up here!");
+            System.err.println("Strange, we should never end up here!");
             e.printStackTrace();
             System.err.println("\nShuting down");
             System.exit(1);

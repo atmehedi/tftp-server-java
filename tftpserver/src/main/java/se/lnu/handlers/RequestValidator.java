@@ -1,7 +1,5 @@
 package se.lnu.handlers;
 
-import se.lnu.domain.error.E1FileNotFound;
-import se.lnu.domain.error.E6FileAlreadyExist;
 import se.lnu.domain.error.TFTPError;
 import se.lnu.domain.exeptions.E1FileNotFoundException;
 import se.lnu.domain.exeptions.E6FileAlreadyExistException;

@@ -11,7 +11,7 @@ import java.io.File;
 public abstract class OctetRequest
 {
     public static final String READDIR = "/Users/nils/Documents/";
-    public static final String WRITEDIR = "C:\\Users\\Steve\\Documents\\TFTPFolder\\sendReqs\\";
+    public static final String WRITEDIR = "/Users/nils/Desktop/";
     private int opcode;
     private String fileName;
 

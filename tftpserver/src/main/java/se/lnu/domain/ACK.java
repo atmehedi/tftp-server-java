@@ -32,4 +32,14 @@ public class ACK
     {
         return "ACK, nr: " + blockNrInt;
     }
+
+    public byte[] returnAckAsBytes(){
+
+        byte[] out = new byte[4];
+        out[0] = opcode[0];
+        out[1] = opcode[1];
+        out[2] = blockNr[0];
+        out[3] = blockNr[1];
+        return out;
+    }
 }

@@ -72,7 +72,6 @@ public class RequestParser {
 
         if (!mode.equalsIgnoreCase("octet"))
         {
-            //TODO, handle this exception in the main class
             System.err.println("Mode requested was not octet and is not supported by server," +
                     " request mode received == " + mode);
             throw new E4IllegalTFTPOperationException();
