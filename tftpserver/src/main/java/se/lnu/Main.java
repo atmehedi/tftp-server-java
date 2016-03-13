@@ -57,7 +57,7 @@ public class Main
 
 
         DatagramSocket datagramSocket = new DatagramSocket(null);
-        SocketAddress socketAddress = new InetSocketAddress("127.0.0.1", port);
+        SocketAddress socketAddress = new InetSocketAddress("0.0.0.0", port);
         datagramSocket.bind(socketAddress);
         datagramSocket.setReuseAddress(true);
 
@@ -116,7 +116,7 @@ class TFTPServerThread extends Thread {
             // Assign a port that is not occupied
             assignPort: for (;;){
                 try{
-                    socketAddress = new InetSocketAddress("127.0.0.1", RandomInt());
+                    socketAddress = new InetSocketAddress("0.0.0.0", RandomInt());
                     datagramSocket.bind(socketAddress);
                     break assignPort;
                 }
@@ -260,6 +260,5 @@ class TFTPServerThread extends Thread {
         Random random = new Random();
         return random.nextInt(max - min + 1) + min;
     }
-
 }
 
