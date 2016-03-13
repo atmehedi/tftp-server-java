@@ -5,6 +5,7 @@ import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.commons.cli.*;
@@ -215,12 +216,22 @@ class TFTPServerThread extends Thread {
 
                     datagramSocket.send(firstAckToClienPacket);
 
+
+
                     reciveAndSendAckLook: for (;;){
 
                         datagramSocket.receive(recvDatagramPacket);
 
+                        byte[] revcData = null;
+                        if (recvDatagramPacket.getLength() < 516){
+                            revcData = Arrays.copyOf(recvDatagramPacket.getData(), recvDatagramPacket.getLength());
+                        }
+                        else {
+                            revcData = recvDatagramPacket.getData();
+                        }
+
                         // Get Ack
-                        ACK ackToClient = dataPacketHandler.parseAndReceiveTFTPDataPacket(recvDatagramPacket.getData());
+                        ACK ackToClient = dataPacketHandler.parseAndReceiveTFTPDataPacket(revcData);
 
                         // Send Ack back to client
                         DatagramPacket ackToClienPacket = new DatagramPacket(ackToClient.returnAckAsBytes(), ackToClient.returnAckAsBytes().length, remoteBindPoint);
