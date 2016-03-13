@@ -37,26 +37,6 @@ public class Main
         int port = 4970;
         byte[] byteBuffer = new byte[byteBufferSize];
 
-        Options options = new Options();
-        // commandline arguments
-        options.addOption("h", "help", false, "show help.");
-        options.addOption("d", "directory", true, "Read/Write directory");
-        CommandLine cmd = null;
-
-        try{
-            CommandLineParser parser = new DefaultParser();
-            cmd = parser.parse(options, args);
-        }
-        catch (UnrecognizedOptionException e){
-            System.err.println("Unrecognized option");
-            help(options);
-        }
-        catch (MissingArgumentException e){
-            System.err.println("Missign arguments options");
-            help(options);
-        }
-
-
         DatagramSocket datagramSocket = new DatagramSocket(null);
         SocketAddress socketAddress = new InetSocketAddress("0.0.0.0", port);
         datagramSocket.bind(socketAddress);
@@ -69,7 +49,7 @@ public class Main
             datagramSocket.receive(recvDatagramPacket);
             // Create new server thread instance
             // Pass the datagram packet the we got from client as argument
-            TFTPServerThread tftpServer = new TFTPServerThread(recvDatagramPacket, cmd);
+            TFTPServerThread tftpServer = new TFTPServerThread(recvDatagramPacket);
             // Start the new server instance
             tftpServer.start();
             // Go back to waiting for client
@@ -95,11 +75,10 @@ class TFTPServerThread extends Thread {
     SocketAddress remoteBindPointBackup;
     CommandLine cmd;
 
-    public TFTPServerThread(DatagramPacket datagramPacket, CommandLine cmd){
+    public TFTPServerThread(DatagramPacket datagramPacket){
         this.recvDatagramPacket = datagramPacket;
         this.remoteBindPoint = datagramPacket.getSocketAddress();
         this.remoteBindPointBackup = datagramPacket.getSocketAddress();
-        this.cmd = cmd;
     }
 
     @Override
@@ -129,104 +108,91 @@ class TFTPServerThread extends Thread {
 
             if (fromClient.isReadRequest())
             {
-                System.out.println("It's a read request");
+                LOG.debug("Serving read request, host: " + remoteBindPoint.toString());
 
                 RequestValidator requestValidator = new RequestValidator();
 
                 // If request from client is valid
-                TFTPError error = requestValidator.validateRequestedReadFile(fromClient.getFileName());
-                if (error == null){
+                requestValidator.validateRequestedReadFile(fromClient.getFileName());
 
-                    Path path = Paths.get(fromClient.getREADDIR()+fromClient.getFileName());
-                    System.out.println(path);
-                    DataPacketHandler dataPacketHandler = new DataPacketHandler();
-                    ArrayList<TFTPDataPacket> arrayList = dataPacketHandler.getReadPackets(Paths.get(fromClient.getFileName()));
-                    datagramSocket.setSoTimeout(2000);  // Set timeout to 2 sec
 
-                    iterateOverAllPackages: for (TFTPDataPacket packet: arrayList){  // Iterate over all packages
+                Path path = Paths.get(fromClient.getREADDIR()+fromClient.getFileName());
+                System.out.println(path);
+                DataPacketHandler dataPacketHandler = new DataPacketHandler();
+                ArrayList<TFTPDataPacket> arrayList = dataPacketHandler.getReadPackets(Paths.get(fromClient.getFileName()));
+                datagramSocket.setSoTimeout(2000);  // Set timeout to 2 sec
 
-                        int timeouts = 1;
-                        int max_timeouts = 5;
+                iterateOverAllPackages: for (TFTPDataPacket packet: arrayList){  // Iterate over all packages
 
-                        sendPackageAndCheckAck: for (;;){  // Send packages, Verify Ack block nr, Work with timeouts
+                    int timeouts = 1;
+                    int max_timeouts = 5;
 
-                            try{
-                                DatagramPacket sendPack = new DatagramPacket(packet.getPacket(), packet.getPacket().length, remoteBindPoint);
-                                System.out.println("Send package nr: " + packet.getBlockNr());
-                                datagramSocket.send(sendPack); // Send package
-                                // Wait for ack from client
-                                datagramSocket.receive(recvDatagramPacket);
+                    sendPackageAndCheckAck: for (;;){  // Send packages, Verify Ack block nr, Work with timeouts
 
-                                ACKParser ackParser = new ACKParser();
-                                ACK ack = ackParser.getAck(recvDatagramPacket);
+                        try{
+                            DatagramPacket sendPack = new DatagramPacket(packet.getPacket(), packet.getPacket().length, remoteBindPoint);
 
-                                if (ack.getAckNr() == packet.getBlockNr()){
-                                    System.out.println("Recv package nr: "+ack.getAckNr());
-                                    break sendPackageAndCheckAck;
-                                }
-                                else {
-                                    System.out.println("The ACK nr we got from client dont match the one we sent.");
-                                    // Should we do anything here?
-                                }
+                            datagramSocket.send(sendPack); // Send package
+                            // Wait for ack from client
+                            datagramSocket.receive(recvDatagramPacket);
 
-                                System.out.println();
+                            ACKParser ackParser = new ACKParser();
+                            ACK ack = ackParser.getAck(recvDatagramPacket);
+
+                            if (ack.getAckNr() == packet.getBlockNr()){
+                                System.out.println("Recv package nr: "+ack.getAckNr());
+                                break sendPackageAndCheckAck;
                             }
-                            catch (SocketTimeoutException e){
-                                System.out.println("Timeout occured: "+ timeouts);
-                                if (timeouts > max_timeouts){
-                                    System.out.println("Max timeouts reached. Stop sending.");
-                                    break iterateOverAllPackages;
 
-                                }
-                                timeouts++;
+                            System.out.println();
+                        }
+                        catch (SocketTimeoutException e){
+                            System.out.println("Timeout occured: "+ timeouts);
+                            if (timeouts > max_timeouts){
+                                System.out.println("Max timeouts reached. Stop sending.");
+                                break iterateOverAllPackages;
+
                             }
+                            timeouts++;
                         }
                     }
-
-                }
-                else{
-                    // Handle error
                 }
             }
 
             else if (fromClient.isWriteRequest())
             {
-                System.out.println("It's a write request");
+                LOG.debug("Serving write request, host: " + remoteBindPoint.toString());
 
                 RequestValidator requestValidator = new RequestValidator();
-                TFTPError error = requestValidator.validateRequestedWriteFile(fromClient.getFileName());
+                requestValidator.validateRequestedWriteFile(fromClient.getFileName()); // Validate
                 DataPacketHandler dataPacketHandler = new DataPacketHandler();
 
+                dataPacketHandler.prepareToReceive();
 
-                if (error == null){
+                byte[] firstAckToClient = new byte[4];
+                firstAckToClient[0] = 0;
+                firstAckToClient[1] = 4;
+                firstAckToClient[2] = 0;
+                firstAckToClient[3] = 0;
 
-                    dataPacketHandler.prepareToReceive();
+                DatagramPacket firstAckToClienPacket = new DatagramPacket(firstAckToClient, firstAckToClient.length, remoteBindPoint);
 
-                    byte[] firstAckToClient = new byte[4];
-                    firstAckToClient[0] = 0;
-                    firstAckToClient[1] = 4;
-                    firstAckToClient[2] = 0;
-                    firstAckToClient[3] = 0;
+                datagramSocket.send(firstAckToClienPacket);
 
-                    System.out.println("First ack to client: " + firstAckToClient.toString());
-                    DatagramPacket firstAckToClienPacket = new DatagramPacket(firstAckToClient, firstAckToClient.length, remoteBindPoint);
+                int timeouts = 1;
+                int max_timeouts = 5;
+                datagramSocket.setSoTimeout(2000);  // Set timeout to 2 sec
 
-                    System.out.println("Sending first ack to client");
-                    System.out.println("Bind point: "+remoteBindPoint.toString());
+                reciveAndSendAckLook: for (;;){
 
-                    datagramSocket.send(firstAckToClienPacket);
-
-
-
-                    reciveAndSendAckLook: for (;;){
-
+                    try {
                         datagramSocket.receive(recvDatagramPacket);
 
+                        // If last packet, copy it to a new array.
                         byte[] revcData = null;
-                        if (recvDatagramPacket.getLength() < 516){
+                        if (recvDatagramPacket.getLength() < 516) {
                             revcData = Arrays.copyOf(recvDatagramPacket.getData(), recvDatagramPacket.getLength());
-                        }
-                        else {
+                        } else {
                             revcData = recvDatagramPacket.getData();
                         }
 
@@ -237,12 +203,20 @@ class TFTPServerThread extends Thread {
                         DatagramPacket ackToClienPacket = new DatagramPacket(ackToClient.returnAckAsBytes(), ackToClient.returnAckAsBytes().length, remoteBindPoint);
                         datagramSocket.send(ackToClienPacket);
 
-                        if (dataPacketHandler.lastPacketReceived()){
+                        if (dataPacketHandler.lastPacketReceived()) {
                             dataPacketHandler.writePacketsToFile(fromClient.getFileName());
                             break reciveAndSendAckLook;
                         }
                     }
+                    catch (SocketTimeoutException e){
+                        LOG.debug("Timeout occured: "+ timeouts);
+                        if (timeouts > max_timeouts){
+                            LOG.debug("Max timeouts reached. Stop sending.");
+                            break reciveAndSendAckLook;
 
+                        }
+                        timeouts++;
+                    }
                 }
             }
         }
