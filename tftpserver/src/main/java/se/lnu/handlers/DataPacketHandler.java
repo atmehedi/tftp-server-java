@@ -3,7 +3,10 @@ package se.lnu.handlers;
 import se.lnu.domain.ACK;
 import se.lnu.domain.TFTPDataPacket;
 import se.lnu.domain.exeptions.E0NotDefinedException;
+import se.lnu.domain.exeptions.E3DiskFullException;
+import se.lnu.domain.exeptions.E7NoSuchUserException;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -218,18 +221,25 @@ public class DataPacketHandler
      * @param fileNameWithPath the absolute path with file name to the file that is to be written
      * @throws IOException
      */
-    public void writePacketsToFile(String fileNameWithPath) throws IOException
+    public void writePacketsToFile(String fileNameWithPath) throws Exception
     {
         if (lastPacketReceived())
         {
             //Write it to file
-            /*TODO: When you are done with the main flow, make sure to test this method John*/
             byte[] rawData = getRawDataFromPackets();
+
+            File f = new File("/");
+            Long diskspace = f.getFreeSpace();
+
+            if (diskspace < rawData.length) {
+                throw new E3DiskFullException();
+            }
+
             writeToFile(fileNameWithPath, rawData);
         }
         else
         {
-            throw new IllegalStateException("The last packet haven't been received yet, cannot write to file");
+            throw new E7NoSuchUserException();
         }
     }
 
