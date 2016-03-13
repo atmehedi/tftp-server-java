@@ -229,6 +229,8 @@ class TFTPServerThread extends Thread {
                 tftpExceptionInterface = new E7NoSuchUserException();
             }
 
+            e.printStackTrace();
+
             this.sendErrorToClient(tftpExceptionInterface);
         }
     }

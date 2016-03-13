@@ -2,6 +2,7 @@ package se.lnu.handlers;
 
 import se.lnu.domain.ACK;
 import se.lnu.domain.TFTPDataPacket;
+import se.lnu.domain.exeptions.E0NotDefinedException;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -31,15 +32,14 @@ public class DataPacketHandler
      * @return
      * @throws IOException
      */
-    public ArrayList<TFTPDataPacket> getReadPackets(Path toFile) throws IOException
+    public ArrayList<TFTPDataPacket> getReadPackets(Path toFile) throws Exception
     {
         byte[] dataInBytes = Files.readAllBytes(toFile);
         /* Since the block numbers are limited by two unsigned bytes, the maximum
         * length of the dataInBytes array is 65535 bytes*/
-        if (dataInBytes.length > 65535)
-        {
-            throw new IllegalArgumentException("The file is too big to transfer over the" +
-                    " tftp protocol");
+        if (dataInBytes.length > 65535*512)  // file size limit of 512 bytes/block x 65535 blocks = 32 MB
+        {                                    // 32MB is the original protocol, we base our server on that.
+            throw new E0NotDefinedException("To large file requested.");
         }
         return logicOfSeparatingPackets(dataInBytes);
     }

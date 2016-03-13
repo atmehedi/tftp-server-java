@@ -10,7 +10,7 @@ import java.io.File;
  */
 public abstract class OctetRequest
 {
-    public static final String READDIR = "/Users/nils/Desktop/";
+    public static final String READDIR = "/Users/nils/Documents/";
     public static final String WRITEDIR = "C:\\Users\\Steve\\Documents\\TFTPFolder\\sendReqs\\";
     private int opcode;
     private String fileName;
@@ -18,7 +18,9 @@ public abstract class OctetRequest
     public OctetRequest(int opc, String fName)
     {
         opcode = opc;
-        if (opc == 1) {fileName = READDIR + fName;}
+        if (opc == 1) {
+            fileName = READDIR + fName;
+        }
         else {fileName = WRITEDIR + fName;}
         File f = new File(fileName);
         System.out.println("Existerar filen? " + f.exists());
