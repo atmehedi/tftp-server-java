@@ -1,15 +1,6 @@
-## 1DV701 Assignment 3
+### tftp-server-java
 
-### Resources
-
-* [Wiki](https://github.com/jherrlin/1DV701_assignment3/wiki)
-
-
-### How to run
-
-?
-
-## Todo
-
-- [X] Init project
-- [ ] ?
+* TFTP (RFC1350) server implementation in Java
+* Multithreaded
+* Support PUT/GET
+* Max file size 32MB
